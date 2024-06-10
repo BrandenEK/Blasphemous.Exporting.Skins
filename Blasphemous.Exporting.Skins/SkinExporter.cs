@@ -16,133 +16,118 @@ public class SkinExporter : BlasMod
 
     private AnimationInfo[] _animations;
 
-    private GameObject _testAnim;
-    private SpriteRenderer _sr;
-    private Animator _anim;
+    private bool _isExporting = false;
+    private int _currentAnim = 0;
+    private float _currentTime = 0;
+    private readonly List<Sprite> _currentFrames = new();
 
-    private bool _isPlaying = false;
-    //private bool _skipIncrease = false;
-    private float _currPercent = 0;
-
-    private string _lastSprite = string.Empty;
+    // Testing
+    //private string _lastSprite = string.Empty;
 
     /// <summary>
     /// Loads list of animations to export
     /// </summary>
     protected override void OnInitialize()
     {
+        InputHandler.RegisterDefaultKeybindings(new Dictionary<string, KeyCode>()
+        {
+            { "Export", KeyCode.F9 },
+        });
+
         FileHandler.LoadDataAsJson("animations.json", out _animations);
         Log($"Loaded information for {_animations.Length} animations");
     }
 
     /// <summary>
-    /// Exports all data when loading the main menu
+    /// Handles export process while it is active
     /// </summary>
-    protected override void OnLevelLoaded(string oldLevel, string newLevel)
-    {
-        //if (newLevel == "MainMenu")
-            Export();
-    }
-
-    protected override void OnLateUpdate()
+    protected override void OnUpdate()
     {
         if (Core.Logic.Penitent == null)
             return;
 
-        string currSprite = Core.Logic.Penitent.SpriteRenderer.sprite?.name;
-        if (currSprite != _lastSprite)
+        // Testing
+        //string currSprite = Core.Logic.Penitent.SpriteRenderer.sprite?.name;
+        //if (currSprite != _lastSprite)
+        //{
+        //    Log($"Changing sprite to {currSprite}");
+        //    _lastSprite = currSprite;
+        //}
+
+        if (_isExporting)
         {
-            //Log($"Changing sprite to {currSprite}");
-            _lastSprite = currSprite;
+            ProcessExport();
+            return;
         }
 
-        if (UnityEngine.Input.GetKeyDown(KeyCode.P))
+        if (InputHandler.GetKeyDown("Export"))
+            StartExport();
+    }
+
+    /// <summary>
+    /// Starts the export process
+    /// </summary>
+    public void StartExport()
+    {
+        LogWarning("Starting skin export process...");
+        Core.Input.SetBlocker("EXPORT", true);
+        _isExporting = true;
+
+        _currentAnim = 0; //LungeAttack_Lv3 - MidAirRangeAttack
+        _currentTime = 0;
+        _currentFrames.Clear();
+    }
+
+    /// <summary>
+    /// Steps through the current animation until all frames are recorded
+    /// </summary>
+    private void ProcessExport()
+    {
+        Core.Logic.Penitent.Animator.Play(_animations[_currentAnim].StateName, 0, _currentTime);
+        Sprite sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
+
+        if (sprite != null && !_currentFrames.Contains(sprite))
         {
-            _testAnim = new("Test anim");
-
-            Vector3 position = Core.Logic.Penitent.transform.position;
-            position.z = -5;
-            _testAnim.transform.position = position;
-
-            _sr = _testAnim.AddComponent<SpriteRenderer>();
-            _sr.sortingLayerID = Core.Logic.Penitent.SpriteRenderer.sortingLayerID;
-            _sr.material = Core.Logic.Penitent.SpriteRenderer.material;
-            _sr.sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
-
-            _anim = _testAnim.AddComponent<Animator>();
-            _anim.runtimeAnimatorController = Core.Logic.Penitent.Animator.runtimeAnimatorController;
-
-            _isPlaying = true;
-            //_skipIncrease = true;
-            //float curr = 0;
-            //while (curr <= 1)
-            //{
-            //    anim.Play("LungeAttack_Lv3", 0, curr);
-            //    LogWarning(sr.sprite?.name);
-
-            //    curr += ANIM_STEP;
-            //}
-
-
-            //var player = Core.Logic.Penitent;
-            //var anim = player.Animator;
-            //var controller = anim.runtimeAnimatorController;
-            //var clips = controller.animationClips;
-
-
-            //anim.Play("penitent_dodge_attack_anim", 0);
-
-            //foreach (var clip in clips.OrderBy(c => c.name))
-            //{
-            //    Log(clip.name);
-            //}
-
-            //var dodgeClip = clips.First(c => c.name == "penitent_dodge_attack_anim");
-            //dodgeClip.legacy = true;
-
-            //var animator = _testAnim.GetComponent<Animation>();
-            //animator.clip = dodgeClip;
-            //animator.cullingType = AnimationCullingType.AlwaysAnimate;
-            //animator.AddClip(dodgeClip, "dodge");
-            //animator.Play();
+            Log("Recording new frame: " + sprite?.name);
+            _currentFrames.Add(sprite);
         }
 
-        if (_isPlaying)
+        _currentTime += ANIM_STEP;
+        if (_currentTime > 1)
         {
-            //LungeAttack_Lv3 - MidAirRangeAttack
-            _anim.Play("Idle", 0, _currPercent);
-            LogWarning(_sr.sprite?.name);
-
-            //if (_skipIncrease)
-            //{
-            //    _skipIncrease = false;
-            //}
-            //else
-            //{
-            //    _skipIncrease = true;
-            //}
-
-            _currPercent += ANIM_STEP;
-            if (_currPercent > 1)
-            {
-                _isPlaying = false;
-                _currPercent = 0;
-            }
+            NextExport();
         }
+    }
 
-        //if (_testAnim == null)
-        //    return;
+    /// <summary>
+    /// Saves the current animation and moves onto the next
+    /// </summary>
+    private void NextExport()
+    {
+        // Save all frames to file
 
-        //_testAnim.GetComponent<Animator>().enabled = false;
+        _currentAnim++;
+        _currentTime = 0;
+        _currentFrames.Clear();
 
-        //if (Input.GetKeyDown(KeyCode.O))
-        //    _testAnim.GetComponent<Animator>().enabled = true;
+        if (_currentAnim >= _animations.Length)
+            FinishExport();
+    }
+
+    /// <summary>
+    /// Stops the export process
+    /// </summary>
+    private void FinishExport()
+    {
+        LogWarning("Completed skin export process");
+        Core.Input.SetBlocker("EXPORT", false);
+        _isExporting = false;
     }
 
     /// <summary>
     /// Exports all player animation frames
     /// </summary>
-    public void Export()
+    public void OldExport()
     {
         var anims = Resources.FindObjectsOfTypeAll<Animator>().OrderBy(x => x.name);
         LogError($"Loaded animators: {anims.Count()}");
