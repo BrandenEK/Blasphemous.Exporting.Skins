@@ -150,38 +150,5 @@ public class SkinExporter : BlasMod
         }
     }
 
-    /// <summary>
-    /// Exports all player animation frames
-    /// </summary>
-    public void OldExport()
-    {
-        var anims = Resources.FindObjectsOfTypeAll<Animator>().OrderBy(x => x.name);
-        LogError($"Loaded animators: {anims.Count()}");
-
-        var controllers = Resources.FindObjectsOfTypeAll<RuntimeAnimatorController>().OrderBy(x => x.name);
-        LogError($"Loaded controllers: {controllers.Count()}");
-
-        foreach (Animator anim in anims)
-        {
-            LogWarning($"{anim.name} ({anim.runtimeAnimatorController?.name})");
-        }
-
-        foreach (RuntimeAnimatorController controller in controllers)
-        {
-            LogWarning($"{controller.name}");
-        }
-    }
-
-    /// <summary>
-    /// Saves a sprite texture into the output folder
-    /// </summary>
-    private void SaveSprite(Sprite sprite, string name)
-    {
-        string path = Path.Combine(FileHandler.OutputFolder, $"{name}.png");
-
-        var bytes = sprite.GetSlicedTexture().EncodeToPNG();
-        File.WriteAllBytes(path, bytes);
-    }
-
     private const float ANIM_STEP = 0.02f;
 }
