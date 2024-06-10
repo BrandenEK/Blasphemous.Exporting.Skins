@@ -104,7 +104,9 @@ public class SkinExporter : BlasMod
     /// </summary>
     private void NextExport()
     {
-        // Save all frames to file
+        string animName = _animations[_currentAnim].DisplayName;
+        LogWarning($"Saving {_currentFrames.Count} frames of animation '{animName}'");
+        SaveFrames(animName, _currentFrames);
 
         _currentAnim++;
         _currentTime = 0;
@@ -122,6 +124,28 @@ public class SkinExporter : BlasMod
         LogWarning("Completed skin export process");
         Core.Input.SetBlocker("EXPORT", false);
         _isExporting = false;
+    }
+
+    /// <summary>
+    /// Exports all frames in an animation to a folder
+    /// </summary>
+    private void SaveFrames(string name, List<Sprite> frames)
+    {
+        string folder = Path.Combine(FileHandler.OutputFolder, name);
+        Directory.CreateDirectory(folder);
+
+        for (int i = 0; i < frames.Count; i++)
+        {
+            SaveFrame(Path.Combine(folder, $"{i:00}.png"), frames[i]);
+        }
+    }
+
+    /// <summary>
+    /// Exports a frame to a file
+    /// </summary>
+    private void SaveFrame(string path, Sprite frame)
+    {
+        File.WriteAllBytes(path, frame.GetSlicedTexture().EncodeToPNG());
     }
 
     /// <summary>
