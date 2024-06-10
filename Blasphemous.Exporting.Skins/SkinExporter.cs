@@ -31,6 +31,11 @@ public class SkinExporter : BlasMod
     /// </summary>
     protected override void OnInitialize()
     {
+        InputHandler.RegisterDefaultKeybindings(new Dictionary<string, KeyCode>()
+        {
+            { "Export", KeyCode.F9 },
+        });
+
         FileHandler.LoadDataAsJson("animations.json", out _animations);
         Log($"Loaded information for {_animations.Length} animations");
     }
@@ -41,7 +46,25 @@ public class SkinExporter : BlasMod
     protected override void OnLevelLoaded(string oldLevel, string newLevel)
     {
         //if (newLevel == "MainMenu")
-            Export();
+            //Export();
+    }
+
+    protected override void OnUpdate()
+    {
+        if (Core.Logic.Penitent == null)
+            return;
+
+        if (InputHandler.GetKeyDown("Export")) // Make sure not already exporting
+            StartExport();
+    }
+
+    /// <summary>
+    /// Starts the process of playing and extracting all animation info
+    /// </summary>
+    public void StartExport()
+    {
+        _currPercent = 0;
+        _isPlaying = true;
     }
 
     protected override void OnLateUpdate()
@@ -58,21 +81,21 @@ public class SkinExporter : BlasMod
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.P))
         {
-            _testAnim = new("Test anim");
+            //_testAnim = new("Test anim");
 
-            Vector3 position = Core.Logic.Penitent.transform.position;
-            position.z = -5;
-            _testAnim.transform.position = position;
+            //Vector3 position = Core.Logic.Penitent.transform.position;
+            //position.z = -5;
+            //_testAnim.transform.position = position;
 
-            _sr = _testAnim.AddComponent<SpriteRenderer>();
-            _sr.sortingLayerID = Core.Logic.Penitent.SpriteRenderer.sortingLayerID;
-            _sr.material = Core.Logic.Penitent.SpriteRenderer.material;
-            _sr.sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
+            //_sr = _testAnim.AddComponent<SpriteRenderer>();
+            //_sr.sortingLayerID = Core.Logic.Penitent.SpriteRenderer.sortingLayerID;
+            //_sr.material = Core.Logic.Penitent.SpriteRenderer.material;
+            //_sr.sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
 
-            _anim = _testAnim.AddComponent<Animator>();
-            _anim.runtimeAnimatorController = Core.Logic.Penitent.Animator.runtimeAnimatorController;
+            //_anim = _testAnim.AddComponent<Animator>();
+            //_anim.runtimeAnimatorController = Core.Logic.Penitent.Animator.runtimeAnimatorController;
 
-            _isPlaying = true;
+            //_isPlaying = true;
             //_skipIncrease = true;
             //float curr = 0;
             //while (curr <= 1)
@@ -110,8 +133,8 @@ public class SkinExporter : BlasMod
         if (_isPlaying)
         {
             //LungeAttack_Lv3 - MidAirRangeAttack
-            _anim.Play("Idle", 0, _currPercent);
-            LogWarning(_sr.sprite?.name);
+            Core.Logic.Penitent.Animator.Play("LungeAttack_Lv3", 0, _currPercent);
+            LogWarning(Core.Logic.Penitent.SpriteRenderer.sprite?.name);
 
             //if (_skipIncrease)
             //{
