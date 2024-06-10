@@ -19,6 +19,7 @@ public class SkinExporter : BlasMod
     private bool _isExporting = false;
     private int _currentAnim = 0;
     private float _currentTime = 0;
+    private readonly List<Sprite> _currentFrames = new();
 
     // Testing
     //private string _lastSprite = string.Empty;
@@ -74,6 +75,7 @@ public class SkinExporter : BlasMod
 
         _currentAnim = 0; //LungeAttack_Lv3 - MidAirRangeAttack
         _currentTime = 0;
+        _currentFrames.Clear();
     }
 
     /// <summary>
@@ -82,7 +84,13 @@ public class SkinExporter : BlasMod
     private void ProcessExport()
     {
         Core.Logic.Penitent.Animator.Play(_animations[_currentAnim].StateName, 0, _currentTime);
-        LogError("Sprite: " + Core.Logic.Penitent.SpriteRenderer.sprite?.name);
+        Sprite sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
+
+        if (sprite != null && !_currentFrames.Contains(sprite))
+        {
+            Log("Recording new frame: " + sprite?.name);
+            _currentFrames.Add(sprite);
+        }
 
         _currentTime += ANIM_STEP;
         if (_currentTime > 1)
@@ -97,10 +105,10 @@ public class SkinExporter : BlasMod
     private void NextExport()
     {
         // Save all frames to file
-        // Reset list
 
         _currentAnim++;
         _currentTime = 0;
+        _currentFrames.Clear();
 
         if (_currentAnim >= _animations.Length)
             FinishExport();
