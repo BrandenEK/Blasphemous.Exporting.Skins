@@ -16,10 +16,12 @@ public class SkinExporter : BlasMod
 
     private AnimationInfo[] _animations;
 
+    private readonly List<string> _spritesAlreadySeen = new();
     private bool _isExporting = false;
+
     private int _currentAnim = 0;
+    private int _currentFrame = 0;
     private float _currentTime = 0;
-    private readonly List<Sprite> _currentFrames = new();
 
     // Testing
     //private string _lastSprite = string.Empty;
@@ -73,9 +75,10 @@ public class SkinExporter : BlasMod
         Core.Input.SetBlocker("EXPORT", true);
         _isExporting = true;
 
-        _currentAnim = 0; //LungeAttack_Lv3 - MidAirRangeAttack
+        _currentAnim = 0;
+        _currentFrame = 0;
         _currentTime = 0;
-        _currentFrames.Clear();
+        _spritesAlreadySeen.Clear();
     }
 
     /// <summary>
@@ -86,10 +89,12 @@ public class SkinExporter : BlasMod
         Core.Logic.Penitent.Animator.Play(_animations[_currentAnim].StateName, 0, _currentTime);
         Sprite sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
 
-        if (sprite != null && !_currentFrames.Contains(sprite))
+        if (sprite != null && !_spritesAlreadySeen.Contains(sprite.name))
         {
-            Log("Recording new frame: " + sprite?.name);
-            _currentFrames.Add(sprite);
+            Log("Recording new frame: " + sprite.name);
+            ExportFrame(_animations[_currentAnim].DisplayName, _currentFrame, sprite);
+            _spritesAlreadySeen.Add(sprite.name);
+            _currentFrame++;
         }
 
         _currentTime += ANIM_STEP;
@@ -105,12 +110,12 @@ public class SkinExporter : BlasMod
     private void NextExport()
     {
         string animName = _animations[_currentAnim].DisplayName;
-        LogWarning($"Saving {_currentFrames.Count} frames of animation '{animName}'");
-        SaveFrames(animName, _currentFrames);
+        LogWarning($"Saved {_spritesAlreadySeen.Count} frames of animation '{animName}'");
 
         _currentAnim++;
+        _currentFrame = 0;
         _currentTime = 0;
-        _currentFrames.Clear();
+        _spritesAlreadySeen.Clear();
 
         if (_currentAnim >= _animations.Length)
             FinishExport();
@@ -127,26 +132,38 @@ public class SkinExporter : BlasMod
     }
 
     /// <summary>
-    /// Exports all frames in an animation to a folder
+    /// Saves the image to a file
     /// </summary>
-    private void SaveFrames(string name, List<Sprite> frames)
+    private void ExportFrame(string name, int frame, Sprite sprite)
     {
         string folder = Path.Combine(FileHandler.OutputFolder, name);
+        string file = Path.Combine(folder, $"{frame:00}.png");
+
         Directory.CreateDirectory(folder);
-
-        for (int i = 0; i < frames.Count; i++)
-        {
-            SaveFrame(Path.Combine(folder, $"{i:00}.png"), frames[i]);
-        }
+        File.WriteAllBytes(file, sprite.GetSlicedTexture().EncodeToPNG());
     }
 
-    /// <summary>
-    /// Exports a frame to a file
-    /// </summary>
-    private void SaveFrame(string path, Sprite frame)
-    {
-        File.WriteAllBytes(path, frame.GetSlicedTexture().EncodeToPNG());
-    }
+    ///// <summary>
+    ///// Exports all frames in an animation to a folder
+    ///// </summary>
+    //private void SaveFrames(string name, List<Sprite> frames)
+    //{
+    //    string folder = Path.Combine(FileHandler.OutputFolder, name);
+    //    Directory.CreateDirectory(folder);
+
+    //    for (int i = 0; i < frames.Count; i++)
+    //    {
+    //        SaveFrame(Path.Combine(folder, $"{i:00}.png"), frames[i]);
+    //    }
+    //}
+
+    ///// <summary>
+    ///// Exports a frame to a file
+    ///// </summary>
+    //private void SaveFrame(string path, Sprite frame)
+    //{
+    //    File.WriteAllBytes(path, frame.GetSlicedTexture().EncodeToPNG());
+    //}
 
     /// <summary>
     /// Exports all player animation frames
