@@ -16,6 +16,8 @@ public class SkinExporter : BlasMod
 
     private AnimationInfo[] _animations;
 
+    private bool _isExporting = false;
+
     private GameObject _testAnim;
     private SpriteRenderer _sr;
     private Animator _anim;
@@ -54,7 +56,13 @@ public class SkinExporter : BlasMod
         if (Core.Logic.Penitent == null)
             return;
 
-        if (InputHandler.GetKeyDown("Export")) // Make sure not already exporting
+        if (_isExporting)
+        {
+            ProcessExport();
+            return;
+        }
+
+        if (InputHandler.GetKeyDown("Export"))
             StartExport();
     }
 
@@ -63,8 +71,17 @@ public class SkinExporter : BlasMod
     /// </summary>
     public void StartExport()
     {
-        _currPercent = 0;
-        _isPlaying = true;
+        LogWarning("Starting skin export process...");
+        Core.Input.SetBlocker("EXPORT", true);
+        _isExporting = true;
+    }
+
+    /// <summary>
+    /// Steps through the current animation until all frames are recorded
+    /// </summary>
+    private void ProcessExport()
+    {
+        Core.Logic.Penitent.Animator.Play("Idle", 0, _currPercent);
     }
 
     protected override void OnLateUpdate()
