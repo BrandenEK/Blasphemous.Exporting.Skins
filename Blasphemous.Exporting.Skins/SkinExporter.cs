@@ -17,15 +17,10 @@ public class SkinExporter : BlasMod
     private AnimationInfo[] _animations;
 
     private bool _isExporting = false;
+    private string _currentAnim = string.Empty;
+    private float _currentTime = 0;
 
-    private GameObject _testAnim;
-    private SpriteRenderer _sr;
-    private Animator _anim;
-
-    private bool _isPlaying = false;
-    //private bool _skipIncrease = false;
-    private float _currPercent = 0;
-
+    // Testing
     private string _lastSprite = string.Empty;
 
     /// <summary>
@@ -43,18 +38,20 @@ public class SkinExporter : BlasMod
     }
 
     /// <summary>
-    /// Exports all data when loading the main menu
+    /// Handles export process while it is active
     /// </summary>
-    protected override void OnLevelLoaded(string oldLevel, string newLevel)
-    {
-        //if (newLevel == "MainMenu")
-            //Export();
-    }
-
     protected override void OnUpdate()
     {
         if (Core.Logic.Penitent == null)
             return;
+
+        // Testing
+        string currSprite = Core.Logic.Penitent.SpriteRenderer.sprite?.name;
+        if (currSprite != _lastSprite)
+        {
+            Log($"Changing sprite to {currSprite}");
+            _lastSprite = currSprite;
+        }
 
         if (_isExporting)
         {
@@ -74,6 +71,9 @@ public class SkinExporter : BlasMod
         LogWarning("Starting skin export process...");
         Core.Input.SetBlocker("EXPORT", true);
         _isExporting = true;
+
+        _currentAnim = "LungeAttack_Lv3"; //LungeAttack_Lv3 - MidAirRangeAttack
+        _currentTime = 0;
     }
 
     /// <summary>
@@ -81,108 +81,20 @@ public class SkinExporter : BlasMod
     /// </summary>
     private void ProcessExport()
     {
-        Core.Logic.Penitent.Animator.Play("Idle", 0, _currPercent);
-    }
+        Core.Logic.Penitent.Animator.Play(_currentAnim, 0, _currentTime);
+        LogError("Sprite: " + Core.Logic.Penitent.SpriteRenderer.sprite?.name);
 
-    protected override void OnLateUpdate()
-    {
-        if (Core.Logic.Penitent == null)
-            return;
-
-        string currSprite = Core.Logic.Penitent.SpriteRenderer.sprite?.name;
-        if (currSprite != _lastSprite)
+        _currentTime += ANIM_STEP;
+        if (_currentTime > 1)
         {
-            //Log($"Changing sprite to {currSprite}");
-            _lastSprite = currSprite;
+            _isExporting = false;
         }
-
-        if (UnityEngine.Input.GetKeyDown(KeyCode.P))
-        {
-            //_testAnim = new("Test anim");
-
-            //Vector3 position = Core.Logic.Penitent.transform.position;
-            //position.z = -5;
-            //_testAnim.transform.position = position;
-
-            //_sr = _testAnim.AddComponent<SpriteRenderer>();
-            //_sr.sortingLayerID = Core.Logic.Penitent.SpriteRenderer.sortingLayerID;
-            //_sr.material = Core.Logic.Penitent.SpriteRenderer.material;
-            //_sr.sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
-
-            //_anim = _testAnim.AddComponent<Animator>();
-            //_anim.runtimeAnimatorController = Core.Logic.Penitent.Animator.runtimeAnimatorController;
-
-            //_isPlaying = true;
-            //_skipIncrease = true;
-            //float curr = 0;
-            //while (curr <= 1)
-            //{
-            //    anim.Play("LungeAttack_Lv3", 0, curr);
-            //    LogWarning(sr.sprite?.name);
-
-            //    curr += ANIM_STEP;
-            //}
-
-
-            //var player = Core.Logic.Penitent;
-            //var anim = player.Animator;
-            //var controller = anim.runtimeAnimatorController;
-            //var clips = controller.animationClips;
-
-
-            //anim.Play("penitent_dodge_attack_anim", 0);
-
-            //foreach (var clip in clips.OrderBy(c => c.name))
-            //{
-            //    Log(clip.name);
-            //}
-
-            //var dodgeClip = clips.First(c => c.name == "penitent_dodge_attack_anim");
-            //dodgeClip.legacy = true;
-
-            //var animator = _testAnim.GetComponent<Animation>();
-            //animator.clip = dodgeClip;
-            //animator.cullingType = AnimationCullingType.AlwaysAnimate;
-            //animator.AddClip(dodgeClip, "dodge");
-            //animator.Play();
-        }
-
-        if (_isPlaying)
-        {
-            //LungeAttack_Lv3 - MidAirRangeAttack
-            Core.Logic.Penitent.Animator.Play("LungeAttack_Lv3", 0, _currPercent);
-            LogWarning(Core.Logic.Penitent.SpriteRenderer.sprite?.name);
-
-            //if (_skipIncrease)
-            //{
-            //    _skipIncrease = false;
-            //}
-            //else
-            //{
-            //    _skipIncrease = true;
-            //}
-
-            _currPercent += ANIM_STEP;
-            if (_currPercent > 1)
-            {
-                _isPlaying = false;
-                _currPercent = 0;
-            }
-        }
-
-        //if (_testAnim == null)
-        //    return;
-
-        //_testAnim.GetComponent<Animator>().enabled = false;
-
-        //if (Input.GetKeyDown(KeyCode.O))
-        //    _testAnim.GetComponent<Animator>().enabled = true;
     }
 
     /// <summary>
     /// Exports all player animation frames
     /// </summary>
-    public void Export()
+    public void OldExport()
     {
         var anims = Resources.FindObjectsOfTypeAll<Animator>().OrderBy(x => x.name);
         LogError($"Loaded animators: {anims.Count()}");
