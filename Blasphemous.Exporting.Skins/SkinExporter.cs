@@ -73,7 +73,7 @@ public class SkinExporter : BlasMod
         Core.Input.SetBlocker("EXPORT", true);
         _isExporting = true;
 
-        _currentAnim = 0; //LungeAttack_Lv3 - MidAirRangeAttack
+        _currentAnim = 0;
         _currentTime = 0;
         _currentFrames.Clear();
     }
@@ -106,7 +106,7 @@ public class SkinExporter : BlasMod
     {
         string animName = _animations[_currentAnim].DisplayName;
         LogWarning($"Saving {_currentFrames.Count} frames of animation '{animName}'");
-        SaveFrames(animName, _currentFrames);
+        ExportFrames(animName, _currentFrames);
 
         _currentAnim++;
         _currentTime = 0;
@@ -127,25 +127,18 @@ public class SkinExporter : BlasMod
     }
 
     /// <summary>
-    /// Exports all frames in an animation to a folder
+    /// Saves all frames in an animation to the output folder
     /// </summary>
-    private void SaveFrames(string name, List<Sprite> frames)
+    private void ExportFrames(string name, List<Sprite> frames)
     {
         string folder = Path.Combine(FileHandler.OutputFolder, name);
         Directory.CreateDirectory(folder);
 
         for (int i = 0; i < frames.Count; i++)
         {
-            SaveFrame(Path.Combine(folder, $"{i:00}.png"), frames[i]);
+            string file = Path.Combine(folder, $"{i:00}.png");
+            File.WriteAllBytes(file, frames[i].GetSlicedTexture().EncodeToPNG());
         }
-    }
-
-    /// <summary>
-    /// Exports a frame to a file
-    /// </summary>
-    private void SaveFrame(string path, Sprite frame)
-    {
-        File.WriteAllBytes(path, frame.GetSlicedTexture().EncodeToPNG());
     }
 
     /// <summary>
