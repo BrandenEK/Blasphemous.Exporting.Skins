@@ -6,9 +6,11 @@ internal static class ImageExtensions
 {
     public static Texture2D GetSlicedTexture(this Sprite sprite)
     {
-        var output = new Texture2D((int)sprite.rect.width, (int)sprite.rect.height);
-        Rect r = sprite.textureRect;
-        Color[] pixels = sprite.texture.Duplicate().GetPixels((int)r.x, (int)r.y, (int)r.width, (int)r.height);
+        Vector2Int position = new((int)sprite.rect.x, (int)sprite.rect.y);
+        Vector2Int size = new((int)sprite.rect.width, (int)sprite.rect.height);
+
+        Color[] pixels = sprite.texture.Duplicate().GetPixels(position.x, position.y, size.x, size.y);
+        var output = new Texture2D(size.x, size.y);
         output.SetPixels(pixels);
         output.Apply();
         return output;

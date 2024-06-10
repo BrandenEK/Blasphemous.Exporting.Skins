@@ -15,11 +15,12 @@ public class SkinExporter : BlasMod
     internal SkinExporter() : base(ModInfo.MOD_ID, ModInfo.MOD_NAME, ModInfo.MOD_AUTHOR, ModInfo.MOD_VERSION) { }
 
     private AnimationInfo[] _animations;
-
     private bool _isExporting = false;
+
     private int _currentAnim = 0;
     private float _currentTime = 0;
     private readonly List<Sprite> _currentFrames = new();
+    private bool _skipFrame = false;
 
     // Testing
     //private string _lastSprite = string.Empty;
@@ -73,9 +74,10 @@ public class SkinExporter : BlasMod
         Core.Input.SetBlocker("EXPORT", true);
         _isExporting = true;
 
-        _currentAnim = 0; //LungeAttack_Lv3 - MidAirRangeAttack
+        _currentAnim = 0;
         _currentTime = 0;
         _currentFrames.Clear();
+        _skipFrame = true;
     }
 
     /// <summary>
@@ -84,8 +86,14 @@ public class SkinExporter : BlasMod
     private void ProcessExport()
     {
         Core.Logic.Penitent.Animator.Play(_animations[_currentAnim].StateName, 0, _currentTime);
-        Sprite sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
 
+        if (_skipFrame)
+        {
+            _skipFrame = false;
+            return;
+        }
+
+        Sprite sprite = Core.Logic.Penitent.SpriteRenderer.sprite;
         if (sprite != null && !_currentFrames.Contains(sprite))
         {
             Log("Recording new frame: " + sprite?.name);
@@ -104,11 +112,14 @@ public class SkinExporter : BlasMod
     /// </summary>
     private void NextExport()
     {
-        // Save all frames to file
+        string animName = _animations[_currentAnim].DisplayName;
+        LogWarning($"Saving {_currentFrames.Count} frames of animation '{animName}'");
+        ExportFrames(animName, _currentFrames);
 
         _currentAnim++;
         _currentTime = 0;
         _currentFrames.Clear();
+        _skipFrame = true;
 
         if (_currentAnim >= _animations.Length)
             FinishExport();
@@ -122,6 +133,21 @@ public class SkinExporter : BlasMod
         LogWarning("Completed skin export process");
         Core.Input.SetBlocker("EXPORT", false);
         _isExporting = false;
+    }
+
+    /// <summary>
+    /// Saves all frames in an animation to the output folder
+    /// </summary>
+    private void ExportFrames(string name, List<Sprite> frames)
+    {
+        string folder = Path.Combine(FileHandler.OutputFolder, name);
+        Directory.CreateDirectory(folder);
+
+        for (int i = 0; i < frames.Count; i++)
+        {
+            string file = Path.Combine(folder, $"{i:00}.png");
+            File.WriteAllBytes(file, frames[i].GetSlicedTexture().EncodeToPNG());
+        }
     }
 
     /// <summary>
