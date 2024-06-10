@@ -1,5 +1,6 @@
 ﻿using Blasphemous.ModdingAPI;
 using Framework.Managers;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -13,6 +14,8 @@ public class SkinExporter : BlasMod
 {
     internal SkinExporter() : base(ModInfo.MOD_ID, ModInfo.MOD_NAME, ModInfo.MOD_AUTHOR, ModInfo.MOD_VERSION) { }
 
+    private AnimationInfo[] _animations;
+
     private GameObject _testAnim;
     private SpriteRenderer _sr;
     private Animator _anim;
@@ -23,9 +26,13 @@ public class SkinExporter : BlasMod
 
     private string _lastSprite = string.Empty;
 
+    /// <summary>
+    /// Loads list of animations to export
+    /// </summary>
     protected override void OnInitialize()
     {
-        LogError($"{ModInfo.MOD_NAME} has been initialized");
+        FileHandler.LoadDataAsJson("animations.json", out _animations);
+        Log($"Loaded information for {_animations.Length} animations");
     }
 
     /// <summary>

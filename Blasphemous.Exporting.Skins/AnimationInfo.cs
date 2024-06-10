@@ -7,6 +7,11 @@ namespace Blasphemous.Exporting.Skins;
 public class AnimationInfo
 {
     /// <summary>
+    /// The exported name of this animation
+    /// </summary>
+    public string DisplayName { get; set; }
+
+    /// <summary>
     /// The name of the controller that contains the animation
     /// </summary>
     public string ControllerName { get; set; }

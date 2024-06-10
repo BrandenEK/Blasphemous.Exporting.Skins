@@ -1,0 +1,30 @@
+[
+	{
+		"displayName": "Idle",
+		"stateName": "Idle"
+	},
+	{
+		"displayName": "Idle Sheathed Loop",
+		"stateName": "SheathedLoop"
+	},
+	{
+		"displayName": "Run",
+		"stateName": "Run"
+	},
+	{
+		"displayName": "Dash",
+		"stateName": "Dash"
+	},
+	{
+		"displayName": "Lunge Attack Lvl 1",
+		"stateName": "LungeAttack"
+	},
+	{
+		"displayName": "Lunge Attack Lvl 2",
+		"stateName": "LungeAttack_Lv2"
+	},
+	{
+		"displayName": "Lunge Attack Lvl 3",
+		"stateName": "LungeAttack_Lv3"
+	}
+]

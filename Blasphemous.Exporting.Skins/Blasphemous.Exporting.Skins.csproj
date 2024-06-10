@@ -4,8 +4,8 @@
     <TargetFramework>net35</TargetFramework>
     <LangVersion>latest</LangVersion>
 
-    <Title>Skin Editor (Exporter)</Title>
-    <Product>Skin Editor (Exporter)</Product>
+    <Title>Skin Exporter</Title>
+    <Product>Skin Exporter</Product>
     <Authors>Damocles</Authors>
     <Company>Damocles</Company>
     <Description>An asset extractor for use with the Blasphemous Skin Editor</Description>
