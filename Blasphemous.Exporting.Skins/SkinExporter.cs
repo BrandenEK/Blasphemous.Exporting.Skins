@@ -17,11 +17,11 @@ public class SkinExporter : BlasMod
     private AnimationInfo[] _animations;
 
     private bool _isExporting = false;
-    private string _currentAnim = string.Empty;
+    private int _currentAnim = 0;
     private float _currentTime = 0;
 
     // Testing
-    private string _lastSprite = string.Empty;
+    //private string _lastSprite = string.Empty;
 
     /// <summary>
     /// Loads list of animations to export
@@ -46,12 +46,12 @@ public class SkinExporter : BlasMod
             return;
 
         // Testing
-        string currSprite = Core.Logic.Penitent.SpriteRenderer.sprite?.name;
-        if (currSprite != _lastSprite)
-        {
-            Log($"Changing sprite to {currSprite}");
-            _lastSprite = currSprite;
-        }
+        //string currSprite = Core.Logic.Penitent.SpriteRenderer.sprite?.name;
+        //if (currSprite != _lastSprite)
+        //{
+        //    Log($"Changing sprite to {currSprite}");
+        //    _lastSprite = currSprite;
+        //}
 
         if (_isExporting)
         {
@@ -64,7 +64,7 @@ public class SkinExporter : BlasMod
     }
 
     /// <summary>
-    /// Starts the process of playing and extracting all animation info
+    /// Starts the export process
     /// </summary>
     public void StartExport()
     {
@@ -72,7 +72,7 @@ public class SkinExporter : BlasMod
         Core.Input.SetBlocker("EXPORT", true);
         _isExporting = true;
 
-        _currentAnim = "LungeAttack_Lv3"; //LungeAttack_Lv3 - MidAirRangeAttack
+        _currentAnim = 0; //LungeAttack_Lv3 - MidAirRangeAttack
         _currentTime = 0;
     }
 
@@ -81,14 +81,39 @@ public class SkinExporter : BlasMod
     /// </summary>
     private void ProcessExport()
     {
-        Core.Logic.Penitent.Animator.Play(_currentAnim, 0, _currentTime);
+        Core.Logic.Penitent.Animator.Play(_animations[_currentAnim].StateName, 0, _currentTime);
         LogError("Sprite: " + Core.Logic.Penitent.SpriteRenderer.sprite?.name);
 
         _currentTime += ANIM_STEP;
         if (_currentTime > 1)
         {
-            _isExporting = false;
+            NextExport();
         }
+    }
+
+    /// <summary>
+    /// Saves the current animation and moves onto the next
+    /// </summary>
+    private void NextExport()
+    {
+        // Save all frames to file
+        // Reset list
+
+        _currentAnim++;
+        _currentTime = 0;
+
+        if (_currentAnim >= _animations.Length)
+            FinishExport();
+    }
+
+    /// <summary>
+    /// Stops the export process
+    /// </summary>
+    private void FinishExport()
+    {
+        LogWarning("Completed skin export process");
+        Core.Input.SetBlocker("EXPORT", false);
+        _isExporting = false;
     }
 
     /// <summary>
