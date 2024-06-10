@@ -1,5 +1,6 @@
 ﻿using Blasphemous.ModdingAPI;
 using Framework.Managers;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -38,10 +39,13 @@ public class SkinExporter : BlasMod
 
     protected override void OnLateUpdate()
     {
+        if (Core.Logic.Penitent == null)
+            return;
+
         string currSprite = Core.Logic.Penitent.SpriteRenderer.sprite?.name;
         if (currSprite != _lastSprite)
         {
-            Log($"Changing sprite to {currSprite}");
+            //Log($"Changing sprite to {currSprite}");
             _lastSprite = currSprite;
         }
 
@@ -148,6 +152,17 @@ public class SkinExporter : BlasMod
         {
             LogWarning($"{controller.name}");
         }
+    }
+
+    /// <summary>
+    /// Saves a sprite texture into the output folder
+    /// </summary>
+    private void SaveSprite(Sprite sprite, string name)
+    {
+        string path = Path.Combine(FileHandler.OutputFolder, $"{name}.png");
+
+        var bytes = sprite.GetSlicedTexture().EncodeToPNG();
+        File.WriteAllBytes(path, bytes);
     }
 
     private const float ANIM_STEP = 0.02f;
